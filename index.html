@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0B0B0C">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AG Autos">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon-32.png">
+<title>AG Autos — Gestão de Estoque</title>
+<style>
+:root{
+  --preto:#0B0B0C; --carvao:#141417; --carvao2:#1B1B20; --carvao3:#232329;
+  --linha:#2E2E36; --branco:#F4F4F6; --cinza:#9A9AA6; --cinza2:#6E6E7A;
+  --vermelho:#E01020; --vermelho2:#FF3040; --vermelhoEsc:#8E0A14;
+  --ouro:#C9A227; --verde:#22C55E; --ambar:#F59E0B; --azul:#3B82F6;
+  --r:14px; --tap:48px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--preto); color:var(--branco);
+  font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  padding-bottom:calc(78px + env(safe-area-inset-bottom));
+  overscroll-behavior-y:none;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+a{color:var(--vermelho2)}
+
+/* ---------- HEADER ---------- */
+header{
+  position:sticky;top:0;z-index:40;
+  background:linear-gradient(180deg,#000 0%,#0d0d0f 100%);
+  border-bottom:1px solid var(--linha);
+  padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
+  display:flex;align-items:center;gap:12px;
+}
+.logo{display:flex;align-items:center;gap:9px;line-height:1}
+.logo .ag{
+  font-weight:900;font-size:26px;letter-spacing:-1.5px;font-style:italic;
+  color:var(--vermelho);text-shadow:0 0 18px rgba(224,16,32,.45);
+}
+.logo .bar{width:2px;height:24px;background:var(--vermelho);transform:skewX(-12deg);opacity:.85}
+.logo .w{display:flex;flex-direction:column;gap:1px}
+.logo .autos{font-weight:800;font-size:17px;letter-spacing:.5px}
+.logo .multi{font-size:8px;letter-spacing:3.1px;color:var(--vermelho);font-weight:700}
+header .sub{margin-left:auto;font-size:11px;color:var(--cinza2);text-align:right}
+
+/* ---------- LAYOUT ---------- */
+main{padding:16px 14px 8px;max-width:900px;margin:0 auto}
+h2.tit{font-size:19px;margin:0 0 2px;font-weight:800;letter-spacing:-.3px}
+p.sub{margin:0 0 14px;color:var(--cinza);font-size:13px}
+.hide{display:none!important}
+
+/* ---------- CARDS / KPI ---------- */
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.kpi{background:var(--carvao);border:1px solid var(--linha);border-radius:var(--r);padding:13px 14px;position:relative;overflow:hidden}
+.kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--vermelho)}
+.kpi.g::after{background:var(--verde)} .kpi.a::after{background:var(--ambar)} .kpi.b::after{background:var(--azul)} .kpi.x::after{background:var(--cinza2)}
+.kpi .lb{font-size:11px;color:var(--cinza);text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+.kpi .vl{font-size:21px;font-weight:800;margin-top:5px;letter-spacing:-.6px}
+.kpi .ft{font-size:11px;color:var(--cinza2);margin-top:3px}
+.kpi.wide{grid-column:1/-1}
+
+.card{background:var(--carvao);border:1px solid var(--linha);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.card h3{margin:0 0 10px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.card h3 .cnt{background:var(--carvao3);color:var(--cinza);font-size:11px;padding:2px 7px;border-radius:20px}
+
+/* ---------- LISTA DE VEÍCULOS ---------- */
+.vlist{display:flex;flex-direction:column;gap:10px}
+.vcard{display:flex;gap:12px;background:var(--carvao);border:1px solid var(--linha);border-radius:var(--r);padding:10px;text-align:left;width:100%;align-items:stretch}
+.vcard:active{background:var(--carvao2)}
+.vthumb{width:88px;height:70px;border-radius:10px;background:var(--carvao3) center/cover no-repeat;flex:0 0 88px;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--cinza2)}
+.vinfo{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.vname{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vmeta{font-size:11.5px;color:var(--cinza);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vrow{display:flex;align-items:center;gap:8px;margin-top:auto;flex-wrap:wrap}
+.vprice{font-weight:800;font-size:15px;display:flex;flex-direction:column;line-height:1.1}
+.vprice small{font-size:9.5px;font-weight:600;color:var(--cinza2);text-transform:uppercase;letter-spacing:.6px}
+.vthumb svg{width:34px;height:26px;stroke:var(--cinza2);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.vthumb{position:relative}
+.nfoto{position:absolute;right:4px;bottom:4px;background:rgba(0,0,0,.72);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px}
+.badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.b-estoque{background:rgba(255,255,255,.10);color:#D8D8DE}
+.b-reservado{background:rgba(245,158,11,.16);color:#FBBF24}
+.b-vendido{background:rgba(34,197,94,.16);color:#4ADE80}
+.b-consignado{background:rgba(201,162,39,.18);color:#E3C359}
+.b-alerta{background:rgba(224,16,32,.18);color:#FF6B76}
+.b-neutro{background:var(--carvao3);color:var(--cinza)}
+
+/* ---------- FILTROS ---------- */
+.filtros{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.chip{flex:0 0 auto;min-height:38px;padding:0 14px;border-radius:20px;background:var(--carvao);border:1px solid var(--linha);color:var(--cinza);font-size:13px;font-weight:600;display:flex;align-items:center}
+.chip.on{background:var(--vermelho);border-color:var(--vermelho);color:#fff}
+.chip i{font-style:normal;background:rgba(255,255,255,.09);padding:1px 6px;border-radius:9px;font-size:11px;margin-left:5px}
+.chip.on i{background:rgba(0,0,0,.24)}
+.vazio svg{width:52px;height:52px;stroke:var(--cinza2);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;margin-bottom:10px}
+.busca{width:100%;min-height:var(--tap);background:var(--carvao);border:1px solid var(--linha);border-radius:12px;padding:0 14px;margin-bottom:12px}
+.busca::placeholder{color:var(--cinza2)}
+
+/* ---------- FORM ---------- */
+label{display:block;font-size:11.5px;color:var(--cinza);font-weight:600;margin:0 0 5px;text-transform:uppercase;letter-spacing:.5px}
+.f{margin-bottom:12px}
+.f input,.f select,.f textarea{
+  width:100%;min-height:var(--tap);background:var(--carvao2);border:1px solid var(--linha);
+  border-radius:11px;padding:11px 13px;outline:none;
+}
+.f textarea{min-height:80px;resize:vertical}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--vermelho)}
+.hint{font-size:11.5px;color:var(--cinza2);margin-top:4px;min-height:14px;font-weight:600}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.f3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.chkrow{display:flex;align-items:center;gap:10px;min-height:var(--tap);padding:0 4px}
+.chkrow input{width:22px;height:22px;min-height:0;accent-color:var(--vermelho)}
+.chkrow label{margin:0;text-transform:none;font-size:14px;color:var(--branco);letter-spacing:0}
+
+/* ---------- BOTÕES ---------- */
+.btn{min-height:var(--tap);border-radius:12px;padding:0 18px;font-weight:700;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.btn-p{background:var(--vermelho);color:#fff}
+.btn-p:active{background:var(--vermelhoEsc)}
+.btn-s{background:var(--carvao3);color:var(--branco);border:1px solid var(--linha)}
+.btn-g{background:rgba(34,197,94,.15);color:#4ADE80;border:1px solid rgba(34,197,94,.35)}
+.btn-d{background:rgba(224,16,32,.12);color:#FF6B76;border:1px solid rgba(224,16,32,.3)}
+.btnrow{display:flex;gap:10px;margin-top:14px}
+.btn-sm{min-height:40px;font-size:13px;padding:0 13px;width:auto;border-radius:10px}
+
+/* ---------- NAV ---------- */
+nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;
+  background:rgba(10,10,12,.97);backdrop-filter:blur(12px);
+  border-top:1px solid var(--linha);
+  display:flex;padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+}
+nav button{flex:1;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--cinza2);font-size:10px;font-weight:600;border-radius:10px;padding:4px 0}
+nav button .ic{height:24px;display:flex;align-items:center;justify-content:center}
+nav button .ic svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav button.on{color:var(--vermelho2)}
+nav button.add .ic{background:var(--vermelho);color:#fff;width:44px;height:24px;border-radius:8px;box-shadow:0 3px 12px rgba(224,16,32,.4)}
+nav button.add .ic svg{stroke-width:2.4}
+nav button.add{color:var(--cinza)}
+
+/* ---------- MODAL / SHEET ---------- */
+.sheet{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.72);display:flex;align-items:flex-end;justify-content:center}
+.sheet .inner{background:var(--carvao);width:100%;max-width:900px;max-height:94vh;overflow-y:auto;border-radius:20px 20px 0 0;border-top:1px solid var(--linha);padding:8px 16px calc(24px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+.grab{width:38px;height:4px;background:var(--linha);border-radius:4px;margin:6px auto 12px}
+.sheet h3{margin:0 0 14px;font-size:17px;font-weight:800}
+.sheet .x{position:absolute;right:14px;top:14px}
+
+/* ---------- DETALHE ---------- */
+.hero{position:relative;border-radius:var(--r);overflow:hidden;background:var(--carvao2);border:1px solid var(--linha);height:180px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;width:100%;padding:0}
+.hero img{width:100%;height:100%;object-fit:cover}
+.heroVazio{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--cinza2);font-size:13px}
+.hero .ph svg{width:46px;height:46px;stroke:var(--cinza2);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.heroN{position:absolute;right:9px;bottom:9px;background:rgba(0,0,0,.65);padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700}
+.acoes{display:grid;grid-template-columns:repeat(auto-fit,minmax(76px,1fr));gap:8px;margin-bottom:14px}
+.ac{min-height:var(--tap);background:var(--carvao);border:1px solid var(--linha);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:6px 4px}
+.ac b{font-size:13px;font-weight:700}
+.ac span{font-size:10px;color:var(--cinza2)}
+.ac:active{background:var(--carvao3)}
+#qVender{background:var(--vermelho);border-color:var(--vermelho)}
+#qVender span{color:rgba(255,255,255,.8)}
+.gal{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px}
+.gal .g{flex:0 0 74px;height:60px;border-radius:9px;background:var(--carvao3) center/cover no-repeat;position:relative;border:2px solid transparent}
+.gal .g.capa{border-color:var(--vermelho)}
+.gal .g .del{position:absolute;top:-5px;right:-5px;width:22px;height:22px;border-radius:50%;background:var(--vermelho);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.gal .addph{flex:0 0 74px;height:60px;border-radius:9px;border:1px dashed var(--linha);display:flex;align-items:center;justify-content:center;color:var(--cinza);font-size:22px}
+
+.tabs{display:flex;gap:6px;background:var(--carvao2);padding:4px;border-radius:12px;margin-bottom:14px;overflow-x:auto}
+.tabs button{flex:1 0 auto;min-height:40px;padding:0 12px;border-radius:9px;font-size:13px;font-weight:600;color:var(--cinza);white-space:nowrap}
+.tabs button.on{background:var(--vermelho);color:#fff}
+
+.lin{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--linha);font-size:13.5px}
+.lin:last-child{border-bottom:none}
+.lin .k{color:var(--cinza)}
+.lin .v{font-weight:600;text-align:right}
+.lin.tot{border-top:1px solid var(--linha);margin-top:4px;padding-top:11px;font-size:15px}
+.lin.tot .v{font-weight:800;font-size:16px}
+.pos{color:var(--verde)} .neg{color:var(--vermelho2)}
+
+.item{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--linha)}
+.item:last-child{border-bottom:none}
+.item .ib{flex:1;min-width:0}
+.item .it{font-weight:600;font-size:13.5px}
+.item .id{font-size:11.5px;color:var(--cinza);margin-top:2px}
+.item .iv{font-weight:700;font-size:14px;white-space:nowrap}
+
+.vazio{text-align:center;padding:38px 20px;color:var(--cinza2)}
+.vazio .e{font-size:40px;margin-bottom:10px}
+.vazio p{margin:0 0 4px;font-size:14px}
+.vazio small{font-size:12px}
+
+.alert{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--linha);font-size:13px}
+.alert:last-child{border-bottom:none}
+.alert .dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
+.alert .tx{flex:1}
+.alert .tx b{display:block;font-size:13px}
+.alert .tx span{font-size:11.5px;color:var(--cinza)}
+
+.bar{height:7px;background:var(--carvao3);border-radius:4px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--vermelho);border-radius:4px}
+
+.atualiza{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:150;
+  background:var(--carvao3);border:1px solid var(--vermelho);border-radius:13px;padding:11px 12px;
+  display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;box-shadow:0 8px 26px rgba(0,0,0,.6)}
+.atualiza span{flex:1}
+.atualiza .btn{width:auto;flex:0 0 auto}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom));background:var(--carvao3);border:1px solid var(--linha);color:var(--branco);padding:12px 18px;border-radius:12px;font-size:13.5px;font-weight:600;z-index:200;box-shadow:0 8px 26px rgba(0,0,0,.6);max-width:90vw;text-align:center}
+
+@media(min-width:640px){
+  .kpis{grid-template-columns:repeat(4,1fr)}
+  .kpi.wide{grid-column:span 2}
+  .vlist{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .sheet{align-items:center}
+  .sheet .inner{border-radius:20px;max-height:88vh}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="ag">AG</span><span class="bar"></span>
+    <span class="w"><span class="autos">AUTOS</span><span class="multi">MULTIMARCAS</span></span>
+  </div>
+  <div class="sub" id="hdSub">Gestão de estoque</div>
+</header>
+
+<main id="app"></main>
+
+<nav>
+  <button aria-label="painel" data-nav="painel" class="on"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M9.5 20v-6h5v6"/></svg></span>Painel</button>
+  <button aria-label="estoque" data-nav="estoque"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 17h18"/><path d="M5 17v-3.2l1.8-4.3A2 2 0 0 1 8.6 8h6.8a2 2 0 0 1 1.8 1.5L19 13.8V17"/><circle cx="7.5" cy="17.5" r="1.6"/><circle cx="16.5" cy="17.5" r="1.6"/></svg></span>Estoque</button>
+  <button aria-label="novo" data-nav="novo" class="add"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>Novo</button>
+  <button aria-label="relatorios" data-nav="relatorios"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 20V4"/><path d="M4 20h16"/><rect x="7" y="12" width="3.2" height="5"/><rect x="13" y="8" width="3.2" height="9"/></svg></span>Relatórios</button>
+  <button aria-label="ajustes" data-nav="ajustes"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/></svg></span>Ajustes</button>
+</nav>
+
+<div id="sheet"></div>
+<div id="novaVersao" class="atualiza" hidden><span>Nova versão do app disponível.</span><button class="btn btn-p btn-sm" id="btAtualiza">Atualizar</button></div>
+<script>
+/* =========================================================
+   AG AUTOS MULTIMARCAS — Gestão de estoque e centro de custo
+   App local: os dados ficam neste aparelho (IndexedDB).
+   ========================================================= */
+
+/* ---------- ARMAZENAMENTO ---------- */
+const DB={n:'agautos',s:'kv',db:null,
+  open(){return new Promise((res,rej)=>{const r=indexedDB.open(this.n,1);
+    r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains(this.s))d.createObjectStore(this.s)};
+    r.onsuccess=e=>{this.db=e.target.result;res()};r.onerror=()=>rej(r.error)})},
+  get(k){return new Promise(res=>{if(!this.db)return res(null);
+    const t=this.db.transaction(this.s,'readonly').objectStore(this.s).get(k);
+    t.onsuccess=()=>res(t.result);t.onerror=()=>res(null)})},
+  set(k,v){return new Promise(res=>{if(!this.db)return res(false);
+    const t=this.db.transaction(this.s,'readwrite').objectStore(this.s).put(v,k);
+    t.onsuccess=()=>res(true);t.onerror=()=>res(false)})}
+};
+
+let ST={veiculos:[],config:{loja:'AG Autos Multimarcas',endereco:'Av. Rogaciano Leite, 280 – Lojas 05, Salinas, Fortaleza/CE',fone:'(85) 98185-0000',diasAlerta:60,vendedores:['André','Loja']},seq:1};
+let saveT=null;
+function save(){clearTimeout(saveT);saveT=setTimeout(async()=>{
+  const ok=await DB.set('estado',JSON.parse(JSON.stringify(ST)));
+  if(!ok){try{localStorage.setItem('agautos',JSON.stringify(ST))}catch(e){toast('⚠ Sem espaço para salvar. Exporte um backup.')}}
+},250)}
+async function load(){
+  try{await DB.open();const d=await DB.get('estado');if(d){ST=Object.assign(ST,d);return}}catch(e){}
+  try{const l=localStorage.getItem('agautos');if(l)ST=Object.assign(ST,JSON.parse(l))}catch(e){}
+}
+
+/* ---------- UTILITÁRIOS ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nid=()=>'v'+(ST.seq++)+Date.now().toString(36).slice(-4);
+const n=v=>{const x=parseFloat(String(v??'').replace(/\./g,'').replace(',','.'));return isNaN(x)?0:x};
+const brl=v=>(v<0?'-':'')+'R$ '+Math.abs(Math.round(v||0)).toLocaleString('pt-BR');
+const brl2=v=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const km=v=>(v||0).toLocaleString('pt-BR')+' km';
+const hoje=()=>new Date().toISOString().slice(0,10);
+const dbr=d=>d?d.split('-').reverse().join('/'):'—';
+const dias=(a,b)=>{if(!a)return 0;const x=new Date(a+'T12:00'),y=b?new Date(b+'T12:00'):new Date();return Math.max(0,Math.round((y-x)/864e5))};
+const mesAtual=()=>hoje().slice(0,7);
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+const byId=id=>ST.veiculos.find(v=>v.id===id);
+const vendido=v=>v.status==='vendido'&&v.venda&&n(v.venda.valor)>0;
+
+/* ---------- CÁLCULO: CENTRO DE CUSTO POR VEÍCULO ---------- */
+function cc(v){
+  const custos=(v.custos||[]);
+  const pago=custos.filter(c=>c.pago).reduce((s,c)=>s+n(c.valor),0);
+  const previsto=custos.filter(c=>!c.pago).reduce((s,c)=>s+n(c.valor),0);
+  const totalCustos=pago+previsto;
+  const compra=n(v.valorCompra);
+  const investido=compra+totalCustos;                 // capital aplicado no veículo
+  const vd=v.venda||{};
+  const vendeu=v.status==='vendido'&&n(vd.valor)>0;
+  const venda=n(vd.valor);
+  const comissao=n(vd.comissao);
+  const retorno=n(vd.retornoBanco);                   // retorno de financiamento (entra como receita)
+  const bruto=vendeu?venda-investido:0;
+  const liquido=vendeu?bruto-comissao+retorno:0;
+  const margem=vendeu&&venda>0?liquido/venda*100:0;
+  const roi=vendeu&&investido>0?liquido/investido*100:0;
+  const prevLucro=!vendeu&&n(v.precoAnuncio)>0?n(v.precoAnuncio)-investido:0;
+  const diasEstoque=vendeu?dias(v.dataCompra,vd.data):dias(v.dataCompra);
+  return {pago,previsto,totalCustos,compra,investido,venda,comissao,retorno,bruto,liquido,margem,roi,prevLucro,vendeu,diasEstoque};
+}
+const SVG_CARRO='<svg viewBox="0 0 24 24"><path d="M2 16h20"/><path d="M4 16v-3.4l1.9-4.4A2 2 0 0 1 7.7 7h8.6a2 2 0 0 1 1.8 1.2L20 12.6V16"/><path d="M4.5 12.7h15"/><circle cx="7" cy="16.6" r="1.6"/><circle cx="17" cy="16.6" r="1.6"/></svg>';
+const SVG_MOTO='<svg viewBox="0 0 24 24"><circle cx="5" cy="16" r="3.2"/><circle cx="19" cy="16" r="3.2"/><path d="M8 16h5l4-6h2"/><path d="M13 10h-3l-2 2"/><path d="M15.5 7.5H18"/></svg>';
+const icoVeic=c=>c==='moto'?SVG_MOTO:SVG_CARRO;
+const nomeV=v=>[v.marca,v.modelo,v.versao].filter(Boolean).join(' ')||'(sem nome)';
+const anoV=v=>[v.anoFab,v.anoMod].filter(Boolean).join('/');
+
+/* ---------- ALERTAS ---------- */
+function alertas(){
+  const a=[];const lim=ST.config.diasAlerta||60;
+  ST.veiculos.forEach(v=>{
+    const k=cc(v);
+    if(v.status!=='vendido'&&k.diasEstoque>lim)
+      a.push({c:'var(--ambar)',t:`${nomeV(v)} parado há ${k.diasEstoque} dias`,s:`Investido ${brl(k.investido)} — avaliar preço ou repasse`,id:v.id});
+    (v.custos||[]).filter(c=>!c.pago&&c.situacao!=='concluido').forEach(c=>
+      a.push({c:'var(--vermelho)',t:`Serviço pendente: ${c.descricao||c.tipo}`,s:`${nomeV(v)} — ${brl(n(c.valor))} (${c.situacao==='executando'?'em execução':'orçado'})`,id:v.id}));
+    const d=v.docs||{};
+    if(v.status!=='vendido'){
+      if(!d.crvOk) a.push({c:'var(--cinza)',t:`CRV/DUT pendente`,s:nomeV(v),id:v.id});
+      if(d.ipvaAberto) a.push({c:'var(--ambar)',t:`IPVA em aberto`,s:`${nomeV(v)} — ${brl(n(d.ipvaValor))}`,id:v.id});
+      if(n(d.multas)>0) a.push({c:'var(--vermelho)',t:`Multas a quitar`,s:`${nomeV(v)} — ${brl(n(d.multas))}`,id:v.id});
+    }
+    if(v.status==='vendido'&&d.garantiaAte){
+      const dd=Math.round((new Date(d.garantiaAte+'T12:00')-new Date())/864e5);
+      if(dd>=0&&dd<=15) a.push({c:'var(--ouro)',t:`Garantia vence em ${dd} dia(s)`,s:`${nomeV(v)} — até ${dbr(d.garantiaAte)}`,id:v.id});
+    }
+    if(v.status==='vendido'&&!vendido(v))
+      a.push({c:'var(--vermelho)',t:'Venda sem valor lançado',s:`${nomeV(v)} — o lucro não entra nos relatórios assim`,id:v.id});
+    if(v.status!=='vendido'&&v.origem==='consignado'&&!v.consignante)
+      a.push({c:'var(--ouro)',t:`Consignado sem dono cadastrado`,s:nomeV(v),id:v.id});
+  });
+  return a;
+}
+
+/* ---------- ROTAS ---------- */
+let rota='painel',filtro='todos',busca='',abaDet='dados',detId=null;
+function nav(r){rota=r;detId=null;document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.nav===r));window.scrollTo(0,0);render()}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  if(b.dataset.nav==='novo'){formVeiculo();return}
+  nav(b.dataset.nav);
+});
+
+function render(){
+  const el=$('#app');
+  if(detId){el.innerHTML=viewDetalhe(byId(detId));ligarDetalhe();return}
+  if(rota==='painel')el.innerHTML=viewPainel();
+  else if(rota==='estoque'){el.innerHTML=viewEstoque();ligarEstoque()}
+  else if(rota==='relatorios')el.innerHTML=viewRelatorios();
+  else if(rota==='ajustes'){el.innerHTML=viewAjustes();ligarAjustes()}
+  document.querySelectorAll('[data-abrir]').forEach(x=>x.onclick=()=>{detId=x.dataset.abrir;abaDet='dados';window.scrollTo(0,0);render()});
+  $('#hdSub').textContent=ST.veiculos.filter(v=>v.status!=='vendido').length+' no pátio';
+}
+
+/* ---------- PAINEL ---------- */
+function viewPainel(){
+  const est=ST.veiculos.filter(v=>v.status!=='vendido');
+  const vend=ST.veiculos.filter(vendido);
+  const imob=est.reduce((s,v)=>s+cc(v).investido,0);
+  const mes=vend.filter(v=>(v.venda?.data||'').slice(0,7)===mesAtual());
+  const lucroMes=mes.reduce((s,v)=>s+cc(v).liquido,0);
+  const fatMes=mes.reduce((s,v)=>s+n(v.venda?.valor),0);
+  const giro=vend.length?Math.round(vend.reduce((s,v)=>s+cc(v).diasEstoque,0)/vend.length):0;
+  const pend=est.reduce((s,v)=>s+cc(v).previsto,0);
+  const al=alertas();
+  const semBackup=ST.veiculos.length&&(!ST.ultimoBackup||dias(ST.ultimoBackup)>21);
+  const ult=[...vend].sort((a,b)=>(b.venda?.data||'').localeCompare(a.venda?.data||'')).slice(0,4);
+
+  return `
+  <h2 class="tit">Painel</h2>
+  <p class="sub">${esc(ST.config.loja)} · ${dbr(hoje())}</p>
+  <div class="kpis">
+    <div class="kpi"><div class="lb">No pátio</div><div class="vl">${est.length}</div><div class="ft">${est.filter(v=>v.status==='reservado').length} reservado(s)</div></div>
+    <div class="kpi"><div class="lb">Capital aplicado</div><div class="vl">${brl(imob)}</div><div class="ft">compra + custos do pátio</div></div>
+    <div class="kpi ${lucroMes>=0?'g':'x'}"><div class="lb">Lucro do mês</div><div class="vl ${lucroMes>=0?'pos':'neg'}">${brl(lucroMes)}</div><div class="ft">${mes.length} venda(s) · ${brl(fatMes)} faturados</div></div>
+    <div class="kpi ${pend>0?'a':''}"><div class="lb">Serviços a pagar</div><div class="vl">${brl(pend)}</div><div class="ft">giro médio de ${giro} dias</div></div>
+  </div>
+
+  ${al.length?`<div class="card"><h3>⚠ Atenção <span class="cnt">${al.length}</span></h3>
+    ${al.slice(0,7).map(a=>`<div class="alert" data-abrir="${a.id}"><span class="dot" style="background:${a.c}"></span>
+      <span class="tx"><b>${esc(a.t)}</b><span>${esc(a.s)}</span></span><span style="color:var(--cinza2)">›</span></div>`).join('')}
+    ${al.length>7?`<div style="text-align:center;color:var(--cinza2);font-size:12px;padding-top:8px">+ ${al.length-7} outro(s)</div>`:''}
+  </div>`:`<div class="card"><h3>✓ Tudo em dia</h3><div style="color:var(--cinza);font-size:13px">Nenhum serviço pendente, documento atrasado ou veículo parado além de ${ST.config.diasAlerta} dias.</div></div>`}
+
+  ${semBackup?`<div class="card" style="border-color:rgba(224,16,32,.4)"><h3>Backup dos dados</h3>
+    <div style="font-size:13px;color:var(--cinza);margin-bottom:10px">${ST.ultimoBackup?'Último backup em '+dbr(ST.ultimoBackup)+'.':'Você ainda não exportou um backup.'}
+    Os dados ficam só neste aparelho — se ele sumir, some tudo.</div>
+    <button class="btn btn-p" onclick="fazBackup()">⬇ Exportar backup agora</button></div>`:''}
+  <div class="card"><h3>Pátio por situação</h3>
+    ${['estoque','reservado','consignado'].map(s=>{
+      const q=est.filter(v=>v.status===s);const tot=est.length||1;
+      return `<div style="margin-bottom:10px"><div class="lin" style="border:none;padding:4px 0">
+        <span class="k">${s==='estoque'?'Disponível':s==='reservado'?'Reservado':'Consignado'}</span>
+        <span class="v">${q.length} · ${brl(q.reduce((a,v)=>a+cc(v).investido,0))}</span></div>
+        <div class="bar"><i style="width:${q.length/tot*100}%;background:${s==='estoque'?'var(--azul)':s==='reservado'?'var(--ambar)':'var(--ouro)'}"></i></div></div>`}).join('')}
+  </div>
+
+  ${ult.length?`<div class="card"><h3>Últimas vendas</h3>
+    ${ult.map(v=>{const k=cc(v);return `<div class="item" data-abrir="${v.id}"><div class="ib">
+      <div class="it">${esc(nomeV(v))}</div>
+      <div class="id">${dbr(v.venda.data)} · ${k.diasEstoque} dias no pátio · ${esc(v.venda.comprador||'—')}</div></div>
+      <div class="iv ${k.liquido>=0?'pos':'neg'}">${brl(k.liquido)}</div></div>`}).join('')}
+  </div>`:''}
+
+  ${!ST.veiculos.length?`<div class="vazio">${SVG_CARRO}<p>Nenhum veículo cadastrado.</p>
+    <small>Lance a primeira compra para o app começar a controlar custos e lucro.</small>
+    <div class="btnrow" style="max-width:320px;margin:16px auto 0"><button class="btn btn-p" onclick="formVeiculo()">+ Cadastrar veículo</button></div></div>`:''}
+  `;
+}
+
+/* ---------- ESTOQUE ---------- */
+function viewEstoque(){
+  let lista=ST.veiculos.filter(v=>{
+    if(filtro==='patio'&&v.status==='vendido')return false;
+    if(['estoque','reservado','consignado','vendido'].includes(filtro)&&v.status!==filtro)return false;
+    if(busca){const t=(nomeV(v)+' '+(v.placa||'')+' '+anoV(v)+' '+(v.cor||'')).toLowerCase();if(!t.includes(busca.toLowerCase()))return false}
+    return true;
+  }).sort((a,b)=>{
+    if(a.status==='vendido'&&b.status!=='vendido')return 1;
+    if(b.status==='vendido'&&a.status!=='vendido')return -1;
+    return (b.dataCompra||'').localeCompare(a.dataCompra||'');
+  });
+  const q=f=>ST.veiculos.filter(v=>f==='todos'?1:f==='patio'?v.status!=='vendido':v.status===f).length;
+  const fs=[['todos','Todos'],['patio','No pátio'],['estoque','Disponível'],['reservado','Reservado'],['consignado','Consignado'],['vendido','Vendidos']];
+  const patio=lista.filter(v=>v.status!=='vendido');
+  return `
+  <h2 class="tit">Estoque</h2>
+  <p class="sub">${lista.length} listado(s)${patio.length?` · ${brl(patio.reduce((s,v)=>s+cc(v).investido,0))} aplicados no pátio`:''}</p>
+  <input class="busca" id="bq" placeholder="Buscar modelo, placa, ano…" value="${esc(busca)}">
+  <div class="filtros">${fs.map(([k,l])=>`<button class="chip ${filtro===k?'on':''}" data-f="${k}">${l} <i>${q(k)}</i></button>`).join('')}</div>
+  <div class="vlist">${lista.length?lista.map(vcard).join(''):`<div class="vazio">${SVG_CARRO}<p>Nada encontrado aqui.</p><small>Tente outro filtro ou limpe a busca.</small></div>`}</div>`;
+}
+function vcard(v){
+  const k=cc(v);const capa=(v.fotos||[])[v.capa||0];
+  const bs={estoque:'b-estoque',reservado:'b-reservado',vendido:'b-vendido',consignado:'b-consignado'}[v.status]||'b-neutro';
+  const lb={estoque:'Disponível',reservado:'Reservado',vendido:'Vendido',consignado:'Consignado'}[v.status]||v.status;
+  const parado=v.status!=='vendido'&&k.diasEstoque>(ST.config.diasAlerta||60);
+  return `<button class="vcard" data-abrir="${v.id}">
+    <div class="vthumb" ${capa?`style="background-image:url('${capa}')"`:''}>${capa?'':icoVeic(v.categoria)}${(v.fotos||[]).length>1?`<span class="nfoto">${v.fotos.length}</span>`:''}</div>
+    <div class="vinfo">
+      <div class="vname">${esc(nomeV(v))}</div>
+      <div class="vmeta">${anoV(v)||'—'} · ${km(n(v.km))} · ${esc(v.cor||'—')}${v.placa?' · '+esc(v.placa):''}</div>
+      <div class="vmeta" style="color:var(--cinza2)">Aplicado ${brl(k.investido)}${k.vendeu?'':` · ${k.diasEstoque}d no pátio`}</div>
+      <div class="vrow">
+        <span class="vprice ${k.vendeu?(k.liquido>=0?'pos':'neg'):''}"><small>${k.vendeu?'lucro':'anúncio'}</small>${k.vendeu?brl(k.liquido):brl(n(v.precoAnuncio))}</span>
+        <span class="badge ${bs}">${lb}</span>
+        ${parado?'<span class="badge b-alerta">parado</span>':''}
+        ${v.status==='vendido'&&!vendido(v)?'<span class="badge b-alerta">venda incompleta</span>':''}
+        ${k.previsto>0?`<span class="badge b-neutro">serviço ${brl(k.previsto)}</span>`:''}
+        ${!(v.fotos||[]).length?'<span class="badge b-neutro">sem foto</span>':''}
+      </div>
+    </div></button>`;
+}
+function ligarEstoque(){
+  document.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{filtro=b.dataset.f;render()});
+  const q=$('#bq');q.oninput=()=>{busca=q.value;const p=q.selectionStart;render();const nq=$('#bq');nq.focus();nq.setSelectionRange(p,p)};
+}
+
+/* ---------- DETALHE DO VEÍCULO ---------- */
+function viewDetalhe(v){
+  if(!v)return '<div class="vazio"><p>Veículo não encontrado.</p></div>';
+  const k=cc(v);const fotos=v.fotos||[];const capa=fotos[v.capa||0];
+  const abas=[['dados','Dados'],['fotos',`Fotos (${fotos.length})`],['custos',`Custos (${(v.custos||[]).length})`],['docs','Documentos'],['venda','Venda']];
+  return `
+  <button class="btn btn-s btn-sm" id="voltar" style="margin-bottom:12px">‹ Voltar</button>
+  <div class="hero" id="heroBox">${capa?`<img src="${capa}" alt="">`:
+    `<div class="heroVazio"><span class="ph">${icoVeic(v.categoria)}</span><span>Toque para adicionar fotos</span></div>`}
+    ${fotos.length?`<span class="heroN">${fotos.length} foto${fotos.length>1?'s':''}</span>`:''}</div>
+  <h2 class="tit">${esc(nomeV(v))}</h2>
+  <p class="sub">${anoV(v)||'—'} · ${km(n(v.km))} · ${esc(v.cor||'—')} · ${esc(v.combustivel||'—')} · ${esc(v.cambio||'—')}${v.placa?' · '+esc(v.placa):''}</p>
+
+  <div class="acoes">
+    ${v.status!=='vendido'?`<button class="ac" id="qVender"><b>Vender</b><span>registrar</span></button>`:''}
+    <button class="ac" id="qCusto"><b>+ Custo</b><span>serviço</span></button>
+    <button class="ac" id="qFoto"><b>Fotos</b><span>${fotos.length}</span></button>
+    <button class="ac" id="qShare"><b>Anúncio</b><span>copiar</span></button>
+  </div>
+  ${v.status!=='vendido'?`<div class="filtros" style="margin-bottom:14px">
+    ${[['estoque','Disponível'],['reservado','Reservado'],['consignado','Consignado']].map(([s,l])=>
+      `<button class="chip ${v.status===s?'on':''}" data-st="${s}">${l}</button>`).join('')}</div>`:''}
+
+  <div class="kpis">
+    <div class="kpi"><div class="lb">Aplicado</div><div class="vl">${brl(k.investido)}</div><div class="ft">compra ${brl(k.compra)} + custos ${brl(k.totalCustos)}</div></div>
+    ${k.vendeu
+      ?`<div class="kpi ${k.liquido>=0?'g':'x'}"><div class="lb">Lucro líquido</div><div class="vl ${k.liquido>=0?'pos':'neg'}">${brl(k.liquido)}</div><div class="ft">margem ${k.margem.toFixed(1)}% · ROI ${k.roi.toFixed(1)}%</div></div>`
+      :`<div class="kpi ${k.prevLucro>=0?'g':'a'}"><div class="lb">Lucro previsto</div><div class="vl ${k.prevLucro>=0?'pos':'neg'}">${brl(k.prevLucro)}</div><div class="ft">anúncio ${brl(n(v.precoAnuncio))}</div></div>`}
+    ${k.vendeu?'':`<div class="kpi a"><div class="lb">Piso — não venda abaixo</div><div class="vl">${brl(k.investido)}</div><div class="ft">nesse valor o lucro é zero</div></div>`}
+    <div class="kpi"><div class="lb">${k.vendeu?'Tempo até vender':'Dias no pátio'}</div><div class="vl">${k.diasEstoque} dias</div>
+      <div class="ft">compra ${dbr(v.dataCompra)}${k.vendeu?' · venda '+dbr(v.venda.data):''}${v.origem==='consignado'?' · CONSIGNADO de '+esc(v.consignante||'—'):''}</div></div>
+  </div>
+
+  <div class="tabs">${abas.map(([a,l])=>`<button data-aba="${a}" class="${abaDet===a?'on':''}">${l}</button>`).join('')}</div>
+  <div id="abaBox">${abaDet==='dados'?abaDados(v,k):abaDet==='fotos'?abaFotos(v):abaDet==='custos'?abaCustos(v,k):abaDet==='docs'?abaDocs(v):abaVenda(v,k)}</div>`;
+}
+
+function abaDados(v,k){
+  return `<div class="card"><h3>Centro de custo</h3>
+    <div class="lin"><span class="k">Valor de compra</span><span class="v">${brl2(k.compra)}</span></div>
+    <div class="lin"><span class="k">Custos pagos</span><span class="v">${brl2(k.pago)}</span></div>
+    <div class="lin"><span class="k">Custos previstos</span><span class="v" style="color:var(--ambar)">${brl2(k.previsto)}</span></div>
+    <div class="lin tot"><span class="k">Custo total do veículo</span><span class="v">${brl2(k.investido)}</span></div>
+    ${k.vendeu?`
+    <div class="lin" style="margin-top:10px"><span class="k">Valor de venda</span><span class="v">${brl2(k.venda)}</span></div>
+    <div class="lin"><span class="k">Retorno do banco</span><span class="v pos">${k.retorno?'+ '+brl2(k.retorno):'—'}</span></div>
+    <div class="lin"><span class="k">Comissão</span><span class="v neg">${k.comissao?'- '+brl2(k.comissao):'—'}</span></div>
+    <div class="lin tot"><span class="k">Resultado líquido</span><span class="v ${k.liquido>=0?'pos':'neg'}">${brl2(k.liquido)}</span></div>`
+    :`<div class="lin" style="margin-top:10px"><span class="k">Preço de anúncio</span><span class="v">${brl2(n(v.precoAnuncio))}</span></div>
+      <div class="lin"><span class="k">Piso sugerido (0% lucro)</span><span class="v">${brl2(k.investido)}</span></div>`}
+  </div>
+  <div class="card"><h3>Ficha</h3>
+    ${[['Categoria',({carro:'Carro',moto:'Moto',utilitario:'Utilitário'})[v.categoria]||'—'],['Situação',v.status],['Origem',v.origem==='consignado'?'Consignado':'Próprio'],
+       v.origem==='consignado'?['Consignante',v.consignante||'—']:null,
+       ['Placa',v.placa||'—'],['Renavam',v.renavam||'—'],['Chassi',v.chassi||'—'],['Fornecedor',v.fornecedor||'—'],['Data da compra',dbr(v.dataCompra)]]
+      .filter(Boolean).map(([a,b])=>`<div class="lin"><span class="k">${a}</span><span class="v">${esc(b)}</span></div>`).join('')}
+    ${v.obs?`<div style="margin-top:10px;font-size:13px;color:var(--cinza);white-space:pre-wrap">${esc(v.obs)}</div>`:''}
+  </div>
+  <div class="btnrow">
+    <button class="btn btn-s" id="bEdit">✎ Editar</button>
+    ${v.status!=='vendido'?'<button class="btn btn-p" id="bVender">Registrar venda</button>':'<button class="btn btn-s" id="bVender">Editar venda</button>'}
+  </div>
+  <div class="btnrow"><button class="btn btn-d" id="bExcluir">Excluir veículo</button></div>`;
+}
+
+function abaFotos(v){
+  const f=v.fotos||[];
+  return `<div class="card"><h3>Fotos <span class="cnt">${f.length}</span></h3>
+    <div class="gal">
+      <button class="addph" id="addFoto">＋</button>
+      ${f.map((s,i)=>`<div class="g ${(v.capa||0)===i?'capa':''}" style="background-image:url('${s}')" data-capa="${i}"><span class="del" data-delf="${i}">×</span></div>`).join('')}
+    </div>
+    <div style="font-size:12px;color:var(--cinza2)">Toque numa foto para definir a capa. As imagens são reduzidas automaticamente antes de salvar.</div>
+    <input type="file" id="fileFoto" accept="image/*" multiple style="display:none">
+  </div>`;
+}
+
+function abaCustos(v,k){
+  const c=(v.custos||[]).slice().sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  const porTipo={};c.forEach(x=>porTipo[x.tipo]=(porTipo[x.tipo]||0)+n(x.valor));
+  return `<div class="card"><h3>Serviços e custos <span class="cnt">${brl(k.totalCustos)}</span></h3>
+    ${c.length?c.map(x=>`<div class="item"><div class="ib">
+      <div class="it">${esc(x.descricao||x.tipo)}</div>
+      <div class="id">${esc(x.tipo)} · ${dbr(x.data)}${x.fornecedor?' · '+esc(x.fornecedor):''} ·
+        <span style="color:${x.pago?'var(--verde)':x.situacao==='executando'?'var(--azul)':'var(--ambar)'}">${x.pago?'pago':x.situacao==='executando'?'em execução':'orçado'}</span></div>
+      <div style="margin-top:7px;display:flex;gap:8px">
+        <button class="btn btn-s btn-sm" data-editc="${x.id}">Editar</button>
+        ${!x.pago?`<button class="btn btn-g btn-sm" data-pagar="${x.id}">Dar baixa</button>`:''}
+      </div></div>
+      <div class="iv">${brl(n(x.valor))}</div></div>`).join('')
+    :`<div class="vazio" style="padding:22px"><p>Nenhum custo lançado.</p><small>Mecânica, funilaria, estética, documentação, pneus…</small></div>`}
+    <div class="btnrow"><button class="btn btn-p" id="addCusto">+ Lançar custo / serviço</button></div>
+  </div>
+  ${Object.keys(porTipo).length?`<div class="card"><h3>Por tipo</h3>
+    ${Object.entries(porTipo).sort((a,b)=>b[1]-a[1]).map(([t,val])=>`
+      <div style="margin-bottom:9px"><div class="lin" style="border:none;padding:3px 0"><span class="k">${esc(t)}</span><span class="v">${brl(val)}</span></div>
+      <div class="bar"><i style="width:${k.totalCustos?val/k.totalCustos*100:0}%"></i></div></div>`).join('')}
+  </div>`:''}`;
+}
+
+function abaDocs(v){
+  const d=v.docs||{};
+  return `<div class="card"><h3>Documentação e prazos</h3>
+    <div class="chkrow"><input type="checkbox" id="dCrv" ${d.crvOk?'checked':''}><label for="dCrv">CRV/DUT em mãos e assinado</label></div>
+    <div class="chkrow"><input type="checkbox" id="dTransf" ${d.transferido?'checked':''}><label for="dTransf">Transferência concluída</label></div>
+    <div class="chkrow"><input type="checkbox" id="dIpva" ${d.ipvaAberto?'checked':''}><label for="dIpva">IPVA em aberto</label></div>
+    <div class="f2" style="margin-top:10px">
+      <div class="f"><label>IPVA / licenciamento (R$)</label><input type="number" step="0.01" inputmode="decimal" id="dIpvaV" value="${d.ipvaValor||''}"></div>
+      <div class="f"><label>Multas (R$)</label><input type="number" step="0.01" inputmode="decimal" id="dMultas" value="${d.multas||''}"></div>
+    </div>
+    <div class="f2">
+      <div class="f"><label>Despachante</label><input id="dDesp" value="${esc(d.despachante||'')}"></div>
+      <div class="f"><label>Garantia até</label><input type="date" id="dGar" value="${d.garantiaAte||''}"></div>
+    </div>
+    <div class="f"><label>Observações do documento</label><textarea id="dObs">${esc(d.obs||'')}</textarea></div>
+    <button class="btn btn-p" id="salvarDocs">Salvar documentação</button>
+    <div style="font-size:12px;color:var(--cinza2);margin-top:10px">Valores de IPVA e multas não entram no custo automaticamente — lance-os na aba <b>Custos</b> se forem pagos pela loja.</div>
+  </div>`;
+}
+
+function abaVenda(v,k){
+  if(!k.vendeu)return `<div class="card"><h3>Venda</h3>
+    <div class="vazio" style="padding:24px"><div class="e">🏁</div><p>Veículo ainda não vendido.</p>
+    <small>Piso sem lucro: <b>${brl(k.investido)}</b> · anúncio: <b>${brl(n(v.precoAnuncio))}</b></small></div>
+    <button class="btn btn-p" id="bVender">Registrar venda</button></div>`;
+  const s=v.venda;
+  return `<div class="card"><h3>Venda realizada</h3>
+    ${[['Data',dbr(s.data)],['Comprador',s.comprador||'—'],['Vendedor',s.vendedor||'—'],['Forma de pagamento',s.forma||'—'],
+       ['Banco / financeira',s.banco||'—'],['Valor da venda',brl2(n(s.valor))],['Entrada',s.entrada?brl2(n(s.entrada)):'—'],
+       ['Retorno do banco',s.retornoBanco?brl2(n(s.retornoBanco)):'—'],['Comissão',s.comissao?brl2(n(s.comissao)):'—']]
+      .map(([a,b])=>`<div class="lin"><span class="k">${a}</span><span class="v">${esc(b)}</span></div>`).join('')}
+    <div class="lin tot"><span class="k">Resultado líquido</span><span class="v ${k.liquido>=0?'pos':'neg'}">${brl2(k.liquido)}</span></div>
+    ${s.obs?`<div style="margin-top:10px;font-size:13px;color:var(--cinza);white-space:pre-wrap">${esc(s.obs)}</div>`:''}
+    <div class="btnrow"><button class="btn btn-s" id="bVender">Editar venda</button><button class="btn btn-d" id="bDesfazer">Desfazer venda</button></div>
+  </div>`;
+}
+
+function ligarDetalhe(){
+  const v=byId(detId);
+  $('#voltar').onclick=()=>{detId=null;render()};
+  document.querySelectorAll('[data-aba]').forEach(b=>b.onclick=()=>{abaDet=b.dataset.aba;render()});
+  const on=(s,f)=>{const e=$(s);if(e)e.onclick=f};
+  on('#bEdit',()=>formVeiculo(v));
+  on('#bVender',()=>formVenda(v));
+  on('#bDesfazer',()=>{if(confirm('Desfazer a venda e devolver o veículo ao pátio?')){v.status='estoque';v.venda=null;save();render()}});
+  on('#bExcluir',()=>{if(confirm('Excluir '+nomeV(v)+' e todo o seu histórico? Não dá para desfazer.')){ST.veiculos=ST.veiculos.filter(x=>x.id!==v.id);save();detId=null;nav('estoque')}});
+  on('#addCusto',()=>formCusto(v));
+  on('#qVender',()=>formVenda(v));
+  on('#qCusto',()=>formCusto(v));
+  on('#qFoto',()=>{abaDet='fotos';render();setTimeout(()=>{const f=$('#fileFoto');f&&f.click()},120)});
+  on('#qShare',()=>anuncio(v));
+  on('#heroBox',()=>{abaDet='fotos';render();if(!(v.fotos||[]).length)setTimeout(()=>{const f=$('#fileFoto');f&&f.click()},120)});
+  document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{
+    v.status=b.dataset.st;if(v.status==='consignado')v.origem='consignado';save();render();toast('Situação: '+b.textContent.trim())});
+  document.querySelectorAll('[data-editc]').forEach(b=>b.onclick=()=>formCusto(v,(v.custos||[]).find(c=>c.id===b.dataset.editc)));
+  document.querySelectorAll('[data-pagar]').forEach(b=>b.onclick=()=>{
+    const c=(v.custos||[]).find(x=>x.id===b.dataset.pagar);c.pago=true;c.situacao='concluido';save();render();toast('Baixa registrada')});
+  on('#salvarDocs',()=>{
+    v.docs={crvOk:$('#dCrv').checked,transferido:$('#dTransf').checked,ipvaAberto:$('#dIpva').checked,
+      ipvaValor:$('#dIpvaV').value,multas:$('#dMultas').value,despachante:$('#dDesp').value,garantiaAte:$('#dGar').value,obs:$('#dObs').value};
+    save();toast('Documentação salva');render()});
+  const fi=$('#fileFoto');
+  on('#addFoto',()=>fi.click());
+  if(fi)fi.onchange=async e=>{
+    const fs=[...e.target.files];if(!fs.length)return;toast('Processando '+fs.length+' foto(s)…');
+    v.fotos=v.fotos||[];
+    for(const f of fs){try{v.fotos.push(await comprime(f))}catch(err){}}
+    save();render();toast('Foto(s) adicionada(s)');
+  };
+  document.querySelectorAll('[data-capa]').forEach(g=>g.onclick=e=>{
+    if(e.target.dataset.delf!==undefined)return;
+    v.capa=+g.dataset.capa;save();render();toast('Capa definida')});
+  document.querySelectorAll('[data-delf]').forEach(b=>b.onclick=e=>{
+    e.stopPropagation();const i=+b.dataset.delf;
+    if(!confirm('Apagar esta foto?'))return;
+    const c=v.capa||0;
+    v.fotos.splice(i,1);
+    v.capa=(i===c)?0:(i<c?c-1:c);
+    if(v.capa>=v.fotos.length)v.capa=0;
+    save();render()});
+}
+
+/* ---------- TEXTO DE ANÚNCIO (WhatsApp / OLX) ---------- */
+function anuncio(v){
+  const L=[];
+  L.push(`🚗 ${nomeV(v)}`.replace('🚗',v.categoria==='moto'?'🏍':'🚗'));
+  if(anoV(v))L.push(`📅 Ano ${anoV(v)}`);
+  if(n(v.km))L.push(`⏱ ${km(n(v.km))}`);
+  const fic=[v.cor,v.combustivel,v.cambio].filter(Boolean).join(' · ');
+  if(fic)L.push(`⚙️ ${fic}`);
+  if(n(v.precoAnuncio))L.push(`💰 ${brl(n(v.precoAnuncio))}`);
+  if(v.obs)L.push(`\n${v.obs}`);
+  L.push(`\n✅ Compra, vende, troca e financia\n📍 ${ST.config.endereco}\n📲 ${ST.config.fone}`);
+  const txt=L.join('\n');
+  const ok=()=>{toast('Anúncio copiado ✓');sheet('Texto do anúncio',
+    `<textarea id="anTxt" style="width:100%;min-height:230px;background:var(--carvao2);border:1px solid var(--linha);border-radius:11px;padding:12px">${esc(txt)}</textarea>
+     <div class="btnrow"><button class="btn btn-s" id="anFechar">Fechar</button>
+     <a class="btn btn-p" style="text-decoration:none" href="https://wa.me/?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">Enviar no WhatsApp</a></div>`,
+    ()=>{$('#anFechar').onclick=fecha})};
+  if(navigator.clipboard?.writeText)navigator.clipboard.writeText(txt).then(ok,ok);else ok();
+}
+
+/* ---------- COMPRESSÃO DE FOTO ---------- */
+function comprime(file,max=1280,q=.72){
+  return new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onload=()=>{const img=new Image();
+      img.onload=()=>{let{width:w,height:h}=img;
+        if(w>max||h>max){const r=Math.min(max/w,max/h);w=Math.round(w*r);h=Math.round(h*r)}
+        const c=document.createElement('canvas');c.width=w;c.height=h;
+        const x=c.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(img,0,0,w,h);
+        res(c.toDataURL('image/jpeg',q))};
+      img.onerror=rej;img.src=fr.result};
+    fr.onerror=rej;fr.readAsDataURL(file);
+  });
+}
+
+/* ---------- SHEETS (FORMULÁRIOS) ---------- */
+function sheet(titulo,html,onMount){
+  $('#sheet').innerHTML=`<div class="sheet"><div class="inner"><div class="grab"></div><h3>${titulo}</h3>${html}</div></div>`;
+  const s=$('#sheet .sheet');
+  s.onclick=e=>{if(e.target===s)fecha()};
+  document.body.style.overflow='hidden';
+  onMount&&onMount();
+  ligaMoney();
+}
+/* eco do valor digitado, para não errar um zero */
+function ligaMoney(){
+  document.querySelectorAll('#sheet input[step="0.01"]').forEach(i=>{
+    const h=document.createElement('div');h.className='hint';
+    i.parentNode.appendChild(h);
+    const up=()=>{const val=n(i.value);h.textContent=val?brl2(val):''};
+    i.addEventListener('input',up);up();
+  });
+  /* data por extenso, porque o teclado do aparelho pode mostrar mm/dd */
+  document.querySelectorAll('#sheet input[type="date"]').forEach(i=>{
+    const h=document.createElement('div');h.className='hint';i.parentNode.appendChild(h);
+    const S=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+    const up=()=>{h.textContent=i.value?S[new Date(i.value+'T12:00').getDay()]+', '+dbr(i.value):''};
+    i.addEventListener('input',up);i.addEventListener('change',up);up();
+  });
+}
+function fecha(){$('#sheet').innerHTML='';document.body.style.overflow=''}
+
+function formVeiculo(v){
+  const e=v||{};const novo=!v;
+  sheet(novo?'Novo veículo':'Editar veículo',`
+    <div class="f3">
+      <div class="f"><label>Tipo</label><select id="fCat">
+        ${[['carro','Carro'],['moto','Moto'],['utilitario','Utilitário']].map(([k,l])=>`<option value="${k}" ${e.categoria===k?'selected':''}>${l}</option>`).join('')}</select></div>
+      <div class="f"><label>Ano fab.</label><input type="number" inputmode="numeric" id="fAnoF" value="${e.anoFab||''}"></div>
+      <div class="f"><label>Ano mod.</label><input type="number" inputmode="numeric" id="fAnoM" value="${e.anoMod||''}"></div>
+    </div>
+    <div class="f2">
+      <div class="f"><label>Marca *</label><input id="fMarca" value="${esc(e.marca||'')}" placeholder="Chevrolet"></div>
+      <div class="f"><label>Modelo *</label><input id="fModelo" value="${esc(e.modelo||'')}" placeholder="Onix Plus"></div>
+    </div>
+    <div class="f"><label>Versão</label><input id="fVersao" value="${esc(e.versao||'')}" placeholder="LTZ 1.0 12V TB Flex Aut."></div>
+    <div class="f3">
+      <div class="f"><label>Placa</label><input id="fPlaca" value="${esc(e.placa||'')}" style="text-transform:uppercase"></div>
+      <div class="f"><label>Cor</label><input id="fCor" value="${esc(e.cor||'')}"></div>
+      <div class="f"><label>KM</label><input type="number" inputmode="numeric" id="fKm" value="${e.km||''}"></div>
+    </div>
+    <div class="f2">
+      <div class="f"><label>Combustível</label><select id="fComb">${['','Flex','Gasolina','Diesel','Etanol','Híbrido','Elétrico','GNV'].map(x=>`<option ${e.combustivel===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="f"><label>Câmbio</label><select id="fCamb">${['','Manual','Automático','Automatizado','CVT'].map(x=>`<option ${e.cambio===x?'selected':''}>${x}</option>`).join('')}</select></div>
+    </div>
+    <div class="f2">
+      <div class="f"><label>Renavam</label><input id="fRenavam" inputmode="numeric" value="${esc(e.renavam||'')}"></div>
+      <div class="f"><label>Chassi</label><input id="fChassi" value="${esc(e.chassi||'')}" style="text-transform:uppercase"></div>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--linha);margin:14px 0">
+    <div class="f2">
+      <div class="f"><label>Origem</label><select id="fOrigem">
+        <option value="proprio" ${e.origem!=='consignado'?'selected':''}>Próprio (comprado)</option>
+        <option value="consignado" ${e.origem==='consignado'?'selected':''}>Consignado (de terceiro)</option></select></div>
+      <div class="f"><label>Situação</label><select id="fStatus">
+        ${[['estoque','Disponível'],['reservado','Reservado'],['consignado','Consignado'],['vendido','Vendido']].map(([k,l])=>`<option value="${k}" ${e.status===k?'selected':''}>${l}</option>`).join('')}</select></div>
+    </div>
+    <div class="f" id="boxConsig" style="${e.origem==='consignado'?'':'display:none'}">
+      <label>Dono do veículo (consignante)</label><input id="fConsig" value="${esc(e.consignante||'')}" placeholder="Nome e telefone">
+    </div>
+    <div class="f2">
+      <div class="f"><label>${e.origem==='consignado'?'Valor a repassar (R$)':'Valor de compra (R$) *'}</label><input type="number" step="0.01" inputmode="decimal" id="fCompra" value="${e.valorCompra||''}"></div>
+      <div class="f"><label>Data da compra/entrada</label><input type="date" id="fData" value="${e.dataCompra||hoje()}"></div>
+    </div>
+    <div class="f2">
+      <div class="f"><label>Preço de anúncio (R$)</label><input type="number" step="0.01" inputmode="decimal" id="fAnuncio" value="${e.precoAnuncio||''}"></div>
+      <div class="f"><label>Fornecedor / de quem comprou</label><input id="fForn" value="${esc(e.fornecedor||'')}"></div>
+    </div>
+    <div class="f"><label>Observações</label><textarea id="fObs" placeholder="Estado, avarias, combinados…">${esc(e.obs||'')}</textarea></div>
+    <div class="btnrow"><button class="btn btn-s" id="xCancel">Cancelar</button><button class="btn btn-p" id="xSalvar">Salvar</button></div>
+  `,()=>{
+    $('#fOrigem').onchange=ev=>{$('#boxConsig').style.display=ev.target.value==='consignado'?'':'none'};
+    $('#xCancel').onclick=fecha;
+    $('#xSalvar').onclick=()=>{
+      const marca=$('#fMarca').value.trim(),modelo=$('#fModelo').value.trim();
+      if(!marca||!modelo){toast('Informe ao menos marca e modelo');return}
+      const o=v||{id:nid(),fotos:[],custos:[],capa:0,docs:{}};
+      Object.assign(o,{
+        categoria:$('#fCat').value,marca,modelo,versao:$('#fVersao').value.trim(),
+        anoFab:$('#fAnoF').value,anoMod:$('#fAnoM').value,placa:$('#fPlaca').value.trim().toUpperCase(),
+        cor:$('#fCor').value.trim(),km:$('#fKm').value,combustivel:$('#fComb').value,cambio:$('#fCamb').value,
+        renavam:$('#fRenavam').value.trim(),chassi:$('#fChassi').value.trim().toUpperCase(),
+        origem:$('#fOrigem').value,consignante:$('#fConsig').value.trim(),status:$('#fStatus').value,
+        valorCompra:$('#fCompra').value,dataCompra:$('#fData').value,precoAnuncio:$('#fAnuncio').value,
+        fornecedor:$('#fForn').value.trim(),obs:$('#fObs').value
+      });
+      const pl=$('#fPlaca').value.trim().toUpperCase();
+      if(pl&&ST.veiculos.some(x=>x.id!==o.id&&(x.placa||'').toUpperCase()===pl)
+         &&!confirm('Já existe outro veículo com a placa '+pl+'. Cadastrar mesmo assim?'))return;
+      if(novo)ST.veiculos.unshift(o);
+      const precisaVenda=o.status==='vendido'&&!(o.venda&&n(o.venda.valor));
+      save();fecha();detId=o.id;abaDet='dados';render();
+      if(precisaVenda){toast('Falta registrar os dados da venda');formVenda(o)}
+      else toast(novo?'Veículo cadastrado':'Alterações salvas');
+    };
+  });
+}
+
+const TIPOS=['Mecânica','Funilaria e pintura','Estética / higienização','Elétrica','Pneus','Peças','Documentação','Despachante','Laudo / vistoria','Publicidade','Frete / guincho','Comissão de captação','Outros'];
+function formCusto(v,c){
+  const e=c||{};const novo=!c;
+  sheet(novo?'Lançar custo / serviço':'Editar lançamento',`
+    <div class="f"><label>Tipo</label><select id="cTipo">${TIPOS.map(t=>`<option ${e.tipo===t?'selected':''}>${t}</option>`).join('')}</select></div>
+    <div class="f"><label>Descrição</label><input id="cDesc" value="${esc(e.descricao||'')}" placeholder="Troca de pastilhas e discos"></div>
+    <div class="f2">
+      <div class="f"><label>Valor (R$) *</label><input type="number" step="0.01" inputmode="decimal" id="cVal" value="${e.valor||''}"></div>
+      <div class="f"><label>Data</label><input type="date" id="cData" value="${e.data||hoje()}"></div>
+    </div>
+    <div class="f"><label>Oficina / fornecedor</label><input id="cForn" value="${esc(e.fornecedor||'')}"></div>
+    <div class="f"><label>Situação do serviço</label><select id="cSit">
+      ${[['orcado','Orçado / a fazer'],['executando','Em execução'],['concluido','Concluído']].map(([k,l])=>`<option value="${k}" ${e.situacao===k?'selected':''}>${l}</option>`).join('')}</select></div>
+    <div class="chkrow"><input type="checkbox" id="cPago" ${e.pago?'checked':''}><label for="cPago">Já pago</label></div>
+    <div class="btnrow">
+      ${novo?'':'<button class="btn btn-d" id="cDel">Excluir</button>'}
+      <button class="btn btn-s" id="cCancel">Cancelar</button><button class="btn btn-p" id="cSalvar">Salvar</button></div>
+  `,()=>{
+    $('#cCancel').onclick=fecha;
+    const del=$('#cDel');if(del)del.onclick=()=>{if(confirm('Excluir este lançamento?')){v.custos=v.custos.filter(x=>x.id!==c.id);save();fecha();render()}};
+    $('#cSalvar').onclick=()=>{
+      if(!n($('#cVal').value)){toast('Informe o valor');return}
+      const o=c||{id:nid()};
+      Object.assign(o,{tipo:$('#cTipo').value,descricao:$('#cDesc').value.trim(),valor:$('#cVal').value,
+        data:$('#cData').value,fornecedor:$('#cForn').value.trim(),situacao:$('#cSit').value,pago:$('#cPago').checked});
+      v.custos=v.custos||[];if(novo)v.custos.push(o);
+      save();fecha();render();toast('Lançamento salvo');
+    };
+  });
+}
+
+function formVenda(v){
+  const s=v.venda||{};const k=cc(v);
+  sheet('Registrar venda',`
+    <div class="card" style="background:var(--carvao2);margin-bottom:14px">
+      <div class="lin"><span class="k">Custo total aplicado</span><span class="v">${brl2(k.investido)}</span></div>
+      <div class="lin"><span class="k">Preço de anúncio</span><span class="v">${brl2(n(v.precoAnuncio))}</span></div>
+    </div>
+    <div class="f2">
+      <div class="f"><label>Valor da venda (R$) *</label><input type="number" step="0.01" inputmode="decimal" id="sVal" value="${s.valor||v.precoAnuncio||''}"></div>
+      <div class="f"><label>Data da venda</label><input type="date" id="sData" value="${s.data||hoje()}"></div>
+    </div>
+    <div class="f"><label>Comprador</label><input id="sComp" value="${esc(s.comprador||'')}" placeholder="Nome e telefone"></div>
+    <div class="f2">
+      <div class="f"><label>Vendedor</label><select id="sVend">${(ST.config.vendedores||[]).map(x=>`<option ${s.vendedor===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="f"><label>Forma de pagamento</label><select id="sForma">
+        ${['À vista','Financiamento','Entrada + financiamento','Troca + financiamento','Cartão','Consórcio','Outro'].map(x=>`<option ${s.forma===x?'selected':''}>${x}</option>`).join('')}</select></div>
+    </div>
+    <div class="f2">
+      <div class="f"><label>Banco / financeira</label><input id="sBanco" value="${esc(s.banco||'')}"></div>
+      <div class="f"><label>Entrada (R$)</label><input type="number" step="0.01" inputmode="decimal" id="sEnt" value="${s.entrada||''}"></div>
+    </div>
+    <div class="f2">
+      <div class="f"><label>Retorno do banco (R$)</label><input type="number" step="0.01" inputmode="decimal" id="sRet" value="${s.retornoBanco||''}"></div>
+      <div class="f"><label>Comissão paga (R$)</label><input type="number" step="0.01" inputmode="decimal" id="sCom" value="${s.comissao||''}"></div>
+    </div>
+    <div class="f"><label>Garantia até</label><input type="date" id="sGar" value="${(v.docs||{}).garantiaAte||''}"></div>
+    <div class="f"><label>Observações</label><textarea id="sObs">${esc(s.obs||'')}</textarea></div>
+    <div id="previa" style="margin:6px 0 4px"></div>
+    <div class="btnrow"><button class="btn btn-s" id="sCancel">Cancelar</button><button class="btn btn-p" id="sSalvar">Confirmar venda</button></div>
+  `,()=>{
+    const prev=()=>{
+      const val=n($('#sVal').value),com=n($('#sCom').value),ret=n($('#sRet').value);
+      const liq=val-k.investido-com+ret;
+      $('#previa').innerHTML=`<div class="card" style="background:var(--carvao2);margin:0">
+        <div class="lin tot" style="border:none;margin:0;padding:2px 0"><span class="k">Resultado líquido</span>
+        <span class="v ${liq>=0?'pos':'neg'}">${brl2(liq)}</span></div>
+        <div style="font-size:11.5px;color:var(--cinza2)">${val?('margem '+(liq/val*100).toFixed(1)+'% · ROI '+(k.investido?(liq/k.investido*100).toFixed(1):'0')+'%'):''}</div></div>`;
+    };
+    ['#sVal','#sCom','#sRet'].forEach(i=>$(i).oninput=prev);prev();
+    $('#sCancel').onclick=()=>{
+      if(v.status==='vendido'&&!vendido(v)){v.status='estoque';save();fecha();render();toast('Veículo mantido no pátio')}
+      else fecha();
+    };
+    $('#sSalvar').onclick=()=>{
+      if(!n($('#sVal').value)){toast('Informe o valor da venda');return}
+      v.venda={valor:$('#sVal').value,data:$('#sData').value,comprador:$('#sComp').value.trim(),vendedor:$('#sVend').value,
+        forma:$('#sForma').value,banco:$('#sBanco').value.trim(),entrada:$('#sEnt').value,
+        retornoBanco:$('#sRet').value,comissao:$('#sCom').value,obs:$('#sObs').value};
+      v.status='vendido';v.docs=v.docs||{};v.docs.garantiaAte=$('#sGar').value;
+      save();fecha();abaDet='venda';render();toast('Venda registrada ✓');
+    };
+  });
+}
+
+/* ---------- RELATÓRIOS ---------- */
+function viewRelatorios(){
+  const vend=ST.veiculos.filter(v=>vendido(v)&&v.venda.data);
+  const meses={};
+  vend.forEach(v=>{const m=v.venda.data.slice(0,7);const k=cc(v);
+    meses[m]=meses[m]||{q:0,fat:0,luc:0,cst:0};
+    meses[m].q++;meses[m].fat+=k.venda;meses[m].luc+=k.liquido;meses[m].cst+=k.totalCustos});
+  const ms=Object.entries(meses).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,12);
+  const maxL=Math.max(1,...ms.map(([,x])=>Math.abs(x.luc)));
+  const rank=vend.map(v=>({v,k:cc(v)})).sort((a,b)=>b.k.liquido-a.k.liquido);
+  const custosTipo={};ST.veiculos.forEach(v=>(v.custos||[]).forEach(c=>custosTipo[c.tipo]=(custosTipo[c.tipo]||0)+n(c.valor)));
+  const totC=Object.values(custosTipo).reduce((a,b)=>a+b,0);
+  const fatT=vend.reduce((s,v)=>s+cc(v).venda,0),lucT=vend.reduce((s,v)=>s+cc(v).liquido,0);
+  const mn=v=>{const[a,b]=v.split('-');return ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][+b-1]+'/'+a.slice(2)};
+
+  return `
+  <h2 class="tit">Relatórios</h2>
+  <p class="sub">${vend.length} venda(s) no histórico</p>
+  <div class="kpis">
+    <div class="kpi"><div class="lb">Faturamento total</div><div class="vl">${brl(fatT)}</div></div>
+    <div class="kpi g"><div class="lb">Lucro total</div><div class="vl ${lucT>=0?'pos':'neg'}">${brl(lucT)}</div><div class="ft">margem ${fatT?(lucT/fatT*100).toFixed(1):'0'}%</div></div>
+    <div class="kpi"><div class="lb">Ticket médio</div><div class="vl">${brl(vend.length?fatT/vend.length:0)}</div></div>
+    <div class="kpi"><div class="lb">Lucro médio/carro</div><div class="vl">${brl(vend.length?lucT/vend.length:0)}</div></div>
+  </div>
+
+  ${ms.length?`<div class="card"><h3>Resultado por mês</h3>
+    ${ms.map(([m,x])=>`<div style="margin-bottom:11px">
+      <div class="lin" style="border:none;padding:2px 0"><span class="k">${mn(m)} · ${x.q} venda(s)</span>
+      <span class="v ${x.luc>=0?'pos':'neg'}">${brl(x.luc)}</span></div>
+      <div class="bar"><i style="width:${Math.abs(x.luc)/maxL*100}%;background:${x.luc>=0?'var(--verde)':'var(--vermelho)'}"></i></div>
+      <div style="font-size:11px;color:var(--cinza2);margin-top:3px">faturou ${brl(x.fat)} · custos ${brl(x.cst)}</div></div>`).join('')}
+  </div>`:''}
+
+  ${rank.length?`<div class="card"><h3>Ranking por veículo</h3>
+    ${rank.slice(0,10).map(({v,k},i)=>`<div class="item" data-abrir="${v.id}"><div class="ib">
+      <div class="it">${i+1}. ${esc(nomeV(v))}</div>
+      <div class="id">${dbr(v.venda.data)} · ${k.diasEstoque}d · margem ${k.margem.toFixed(1)}%</div></div>
+      <div class="iv ${k.liquido>=0?'pos':'neg'}">${brl(k.liquido)}</div></div>`).join('')}
+  </div>`:''}
+
+  ${totC?`<div class="card"><h3>Custos por tipo <span class="cnt">${brl(totC)}</span></h3>
+    ${Object.entries(custosTipo).sort((a,b)=>b[1]-a[1]).map(([t,val])=>`<div style="margin-bottom:9px">
+      <div class="lin" style="border:none;padding:2px 0"><span class="k">${esc(t)}</span><span class="v">${brl(val)} · ${(val/totC*100).toFixed(0)}%</span></div>
+      <div class="bar"><i style="width:${val/totC*100}%"></i></div></div>`).join('')}
+  </div>`:''}
+
+  ${ST.veiculos.length?`<div class="btnrow"><button class="btn btn-s" onclick="exportCSV()">⬇ Exportar planilha (CSV)</button></div>`:
+    `<div class="vazio"><div class="e">📊</div><p>Sem dados ainda.</p><small>Os relatórios aparecem conforme você registra compras e vendas.</small></div>`}`;
+}
+
+async function exportCSV(){
+  const h=['Categoria','Marca','Modelo','Versão','Ano','Placa','KM','Origem','Situação','Data compra','Valor compra','Custos pagos','Custos previstos','Custo total','Preço anúncio','Data venda','Valor venda','Retorno banco','Comissão','Lucro líquido','Margem %','Dias no pátio'];
+  const linhas=ST.veiculos.map(v=>{const k=cc(v);const s=v.venda||{};
+    return [v.categoria,v.marca,v.modelo,v.versao,anoV(v),v.placa,n(v.km),v.origem,v.status,v.dataCompra,k.compra,k.pago,k.previsto,k.investido,n(v.precoAnuncio),s.data||'',k.venda,k.retorno,k.comissao,k.liquido,k.vendeu?k.margem.toFixed(1):'',k.diasEstoque]
+      .map(x=>`"${String(x??'').replace(/"/g,'""')}"`).join(';')});
+  if(await baixa('ag-autos-estoque-'+hoje()+'.csv','﻿'+[h.join(';'),...linhas].join('\n'),'text/csv'))toast('Planilha gerada ✓');
+}
+async function baixa(nome,conteudo,tipo){
+  const b=new Blob([conteudo],{type:tipo+';charset=utf-8'});
+  /* na versão hospedada o navegador não deixa a página baixar sozinha:
+     pede ao aplicativo para salvar. No arquivo local, usa o link mesmo. */
+  try{
+    const dl=(window.claude&&window.claude.use)?await window.claude.use('downloads'):null;
+    if(dl){await dl.save({filename:nome,data:b});return true}
+  }catch(e){
+    if(!(e&&e.code==='declined'))toast('Não consegui salvar o arquivo neste aparelho.');
+    return false;
+  }
+  const u=URL.createObjectURL(b);
+  const a=document.createElement('a');a.href=u;a.download=nome;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),1500);
+  return true;
+}
+
+/* ---------- AJUSTES ---------- */
+function viewAjustes(){
+  const c=ST.config;
+  const fotos=ST.veiculos.reduce((s,v)=>s+(v.fotos||[]).length,0);
+  const peso=(JSON.stringify(ST).length/1048576).toFixed(1);
+  return `
+  <h2 class="tit">Ajustes</h2>
+  <p class="sub">Dados da loja, backup e preferências</p>
+  <div class="card"><h3>Loja</h3>
+    <div class="f"><label>Nome</label><input id="cLoja" value="${esc(c.loja)}"></div>
+    <div class="f"><label>Endereço</label><input id="cEnd" value="${esc(c.endereco)}"></div>
+    <div class="f2">
+      <div class="f"><label>Telefone</label><input id="cFone" value="${esc(c.fone)}"></div>
+      <div class="f"><label>Alerta de veículo parado (dias)</label><input type="number" inputmode="numeric" id="cDias" value="${c.diasAlerta}"></div>
+    </div>
+    <div class="f"><label>Vendedores (separados por vírgula)</label><input id="cVend" value="${esc((c.vendedores||[]).join(', '))}"></div>
+    <button class="btn btn-p" id="salvarCfg">Salvar</button>
+  </div>
+  <div class="card"><h3>Backup</h3>
+    <div style="font-size:13px;color:var(--cinza);margin-bottom:12px">
+      ${ST.veiculos.length} veículo(s), ${fotos} foto(s) · ~${peso} MB gravados neste aparelho.
+      Os dados ficam <b>só aqui</b>. Exporte com frequência e guarde o arquivo no Dropbox.</div>
+    <div class="btnrow"><button class="btn btn-s" id="bExp">⬇ Exportar backup</button><button class="btn btn-s" id="bImp">⬆ Importar</button></div>
+    <input type="file" id="fImp" accept="application/json" style="display:none">
+  </div>
+  <div class="card"><h3>Dados de exemplo</h3>
+    <div style="font-size:13px;color:var(--cinza);margin-bottom:12px">Carrega 10 veículos fictícios — disponíveis, reservado, consignados e vendidos — com serviços em aberto, documentos pendentes, multas, IPVA e vendas financiadas, para você ver o app cheio. Some quando quiser.</div>
+    <div class="btnrow"><button class="btn btn-s" id="bDemo">Carregar exemplos</button><button class="btn btn-d" id="bLimpar">Apagar tudo</button></div>
+  </div>
+  <div style="text-align:center;color:var(--cinza2);font-size:11.5px;padding:8px 0 20px">
+    AG Autos · gestão de estoque v1.0<br>funciona offline · nenhum dado sai do aparelho</div>`;
+}
+async function fazBackup(){
+  if(!await baixa('backup-ag-autos-'+hoje()+'.json',JSON.stringify(ST),'application/json'))return;
+  ST.ultimoBackup=hoje();save();toast('Backup salvo ✓');render();
+}
+function ligarAjustes(){
+  $('#salvarCfg').onclick=()=>{
+    ST.config={loja:$('#cLoja').value,endereco:$('#cEnd').value,fone:$('#cFone').value,
+      diasAlerta:+$('#cDias').value||60,vendedores:$('#cVend').value.split(',').map(s=>s.trim()).filter(Boolean)};
+    save();toast('Ajustes salvos');render()};
+  $('#bExp').onclick=fazBackup;
+  $('#bImp').onclick=()=>$('#fImp').click();
+  $('#fImp').onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();
+    fr.onload=()=>{try{const d=JSON.parse(fr.result);if(!d.veiculos)throw 0;
+      if(confirm('Substituir todos os dados atuais pelo backup ('+d.veiculos.length+' veículos)?')){ST=d;save();toast('Backup restaurado');nav('painel')}}
+      catch(err){toast('Arquivo inválido')}};fr.readAsText(f)};
+  $('#bDemo').onclick=()=>{if(!confirm('Adicionar 10 veículos de exemplo, com serviços, documentos e vendas?'))return;demo();save();nav('painel');toast('Exemplos carregados')};
+  $('#bLimpar').onclick=()=>{if(confirm('Apagar TODOS os veículos, fotos e lançamentos? Não dá para desfazer.')){
+    if(confirm('Confirma mesmo? Exporte um backup antes.')){ST.veiculos=[];save();nav('painel');toast('Tudo apagado')}}};
+}
+
+/* ---------- DADOS DE EXEMPLO ---------- */
+/* foto sintética, só para o app nascer com galeria; nenhuma imagem real da loja */
+function fotoDemo(txt,c1,c2){
+  const c=document.createElement('canvas');c.width=640;c.height=480;const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,0,640,480);g.addColorStop(0,c1);g.addColorStop(1,c2);
+  x.fillStyle=g;x.fillRect(0,0,640,480);
+  x.strokeStyle='rgba(255,255,255,.10)';x.lineWidth=2;
+  for(let i=-480;i<640;i+=46){x.beginPath();x.moveTo(i,480);x.lineTo(i+480,0);x.stroke()}
+  x.fillStyle='rgba(0,0,0,.34)';x.fillRect(0,332,640,148);
+  x.fillStyle='#fff';x.font='bold 33px sans-serif';x.textAlign='center';
+  x.fillText(txt.length>26?txt.slice(0,25)+'…':txt,320,382);
+  x.font='600 15px sans-serif';x.fillStyle='rgba(255,255,255,.6)';
+  x.fillText('FOTO DE EXEMPLO',320,414);
+  x.textAlign='left';x.font='italic bold 26px sans-serif';x.fillStyle='#E01020';x.fillText('AG',22,46);
+  x.font='bold 16px sans-serif';x.fillStyle='rgba(255,255,255,.85)';x.fillText('AUTOS',60,45);
+  return c.toDataURL('image/jpeg',.62);
+}
+function demo(){
+  const d=x=>{const t=new Date();t.setDate(t.getDate()-x);return t.toISOString().slice(0,10)};
+  const F=(t,a,b)=>{try{return [fotoDemo(t,a,b),fotoDemo(t+' · interior','#2b2b31','#101014')]}catch(e){return []}};
+  const C=(tipo,desc,valor,dia,forn,situacao,pago)=>({id:nid(),tipo,descricao:desc,valor,data:d(dia),fornecedor:forn||'',situacao,pago});
+
+  ST.veiculos.unshift(
+  /* ---- disponíveis ---- */
+  {id:nid(),categoria:'carro',marca:'Renault',modelo:'Duster',versao:'Intense Plus 1.6 16V Flex Aut.',anoFab:2025,anoMod:2025,
+   placa:'RSA1B23',cor:'Prata',km:46000,combustivel:'Flex',cambio:'Automático',origem:'proprio',status:'estoque',
+   valorCompra:93000,dataCompra:d(28),precoAnuncio:104900,fornecedor:'Leilão particular',
+   fotos:F('Renault Duster 2025','#4a4f57','#16181c'),capa:0,
+   docs:{crvOk:true,transferido:false},
+   custos:[C('Estética / higienização','Polimento e higienização interna',850,24,'Detail CE','concluido',true),
+           C('Pneus','4 pneus novos 215/65 R16',2400,20,'Pneus Aldeota','orcado',false)],
+   obs:'Único dono, revisões em concessionária.'},
+
+  {id:nid(),categoria:'utilitario',marca:'Ram',modelo:'3500',versao:'Limited Longhorn 6.7 TB CD Diesel',anoFab:2023,anoMod:2023,
+   placa:'RAM3H50',cor:'Branca',km:108000,combustivel:'Diesel',cambio:'Automático',origem:'proprio',status:'estoque',
+   valorCompra:352000,dataCompra:d(41),precoAnuncio:399900,fornecedor:'Particular — Sobral/CE',
+   fotos:F('Ram 3500 Longhorn','#6b3b1e','#120d09'),capa:0,
+   docs:{crvOk:true,transferido:true,ipvaAberto:true,ipvaValor:5400,despachante:'Despachante Rogaciano'},
+   custos:[C('Funilaria e pintura','Retoque de para-choque traseiro',3800,18,'Funilaria Bezerra','executando',false),
+           C('Mecânica','Revisão de 100 mil km',4200,16,'Diesel Center','concluido',true),
+           C('Publicidade','Impulsionamento do anúncio',300,9,'Meta Ads','concluido',true)],
+   obs:'Caminhonete de frota, manual e duas chaves.'},
+
+  {id:nid(),categoria:'carro',marca:'Hyundai',modelo:'HB20',versao:'Comfort Plus 1.0 TB Flex 12V Aut.',anoFab:2025,anoMod:2025,
+   placa:'HBX2D45',cor:'Cinza',km:42000,combustivel:'Flex',cambio:'Automático',origem:'proprio',status:'estoque',
+   valorCompra:79500,dataCompra:d(19),precoAnuncio:89900,fornecedor:'Troca na loja',
+   fotos:F('Hyundai HB20 2025','#3d4450','#0f1114'),capa:0,
+   docs:{crvOk:true,transferido:false,multas:312.40},
+   custos:[C('Estética / higienização','Lavagem técnica e cristalização',420,17,'Detail CE','concluido',true)],
+   obs:'Multa de velocidade pendente, a descontar do repasse.'},
+
+  {id:nid(),categoria:'carro',marca:'Fiat',modelo:'Toro',versao:'Volcano 2.0 16V 4x4 TB Diesel Aut.',anoFab:2020,anoMod:2020,
+   placa:'TOR4K90',cor:'Vermelha',km:103000,combustivel:'Diesel',cambio:'Automático',origem:'proprio',status:'estoque',
+   valorCompra:96000,dataCompra:d(63),precoAnuncio:104900,fornecedor:'Leilão particular',
+   fotos:F('Fiat Toro Volcano','#7a1b22','#140809'),capa:0,
+   docs:{crvOk:false,transferido:false,despachante:'Despachante Rogaciano'},
+   custos:[C('Mecânica','Bomba de combustível e filtros',5600,30,'Diesel Center','orcado',false),
+           C('Documentação','2ª via do CRV',480,26,'Detran/CE','executando',false)],
+   obs:'Parado há mais tempo do que o normal — reavaliar preço.'},
+
+  /* ---- reservado ---- */
+  {id:nid(),categoria:'utilitario',marca:'Volkswagen',modelo:'Saveiro',versao:'Robust 1.6 Total Flex 16V',anoFab:2025,anoMod:2025,
+   placa:'SAV8L11',cor:'Branca',km:51000,combustivel:'Flex',cambio:'Manual',origem:'proprio',status:'reservado',
+   valorCompra:67000,dataCompra:d(12),precoAnuncio:75900,fornecedor:'Particular — Maracanaú/CE',
+   fotos:F('VW Saveiro Robust','#454b53','#101214'),capa:0,
+   docs:{crvOk:true,transferido:true},
+   custos:[C('Laudo / vistoria','Vistoria cautelar',260,10,'Vistoria Bezerra','concluido',true),
+           C('Frete / guincho','Guincho de Maracanaú até a loja',350,12,'','concluido',true)],
+   obs:'Sinal de R$ 2.000 recebido — aguardando aprovação do financiamento.'},
+
+  /* ---- consignados ---- */
+  {id:nid(),categoria:'moto',marca:'Kawasaki',modelo:'Police KZ',versao:'1000cc',anoFab:2002,anoMod:2002,
+   placa:'OKZ7A01',cor:'Branca',km:600,combustivel:'Gasolina',cambio:'Manual',origem:'consignado',
+   consignante:'Sr. Inácio Ferreira — (85) 9xxxx-1122',status:'consignado',
+   valorCompra:62000,dataCompra:d(74),precoAnuncio:69000,
+   fotos:F('Kawasaki Police KZ','#2f3a46','#0c0e11'),capa:0,
+   docs:{crvOk:false,ipvaAberto:true,ipvaValor:480},
+   custos:[C('Publicidade','Anúncio destacado na OLX',180,40,'OLX','concluido',true)],
+   obs:'Moto de colecionador, 600 km rodados. Documento ainda com o dono.'},
+
+  {id:nid(),categoria:'carro',marca:'Jeep',modelo:'Compass',versao:'Overland Hurricane 2.0 TB 16V Aut.',anoFab:2025,anoMod:2025,
+   placa:'CMP5N77',cor:'Preta',km:22000,combustivel:'Gasolina',cambio:'Automático',origem:'consignado',
+   consignante:'',status:'consignado',
+   valorCompra:168000,dataCompra:d(21),precoAnuncio:179000,
+   fotos:F('Jeep Compass Overland','#22262c','#0b0c0e'),capa:0,
+   docs:{crvOk:true,transferido:false},
+   custos:[C('Estética / higienização','Higienização de bancos de couro',600,15,'Detail CE','concluido',true)],
+   obs:'Consignado — falta cadastrar o dono do veículo.'},
+
+  /* ---- vendidos ---- */
+  {id:nid(),categoria:'carro',marca:'Chevrolet',modelo:'Onix Plus',versao:'LTZ 1.0 12V TB Flex Aut. 4p',anoFab:2025,anoMod:2025,
+   placa:'ONX6P32',cor:'Prata',km:47000,combustivel:'Flex',cambio:'Automático',origem:'proprio',status:'vendido',
+   valorCompra:76500,dataCompra:d(35),precoAnuncio:85900,fornecedor:'Particular — Fortaleza/CE',
+   fotos:F('Chevrolet Onix Plus','#4b5058','#101215'),capa:0,
+   docs:{crvOk:true,transferido:true,garantiaAte:d(-82)},
+   custos:[C('Mecânica','Troca de pastilhas e discos',980,30,'Oficina do Léo','concluido',true),
+           C('Documentação','Transferência + despachante',740,28,'Despachante Rogaciano','concluido',true)],
+   venda:{valor:85900,data:d(6),comprador:'Marcos A. (85) 9xxxx-3344',vendedor:'André',forma:'À vista',
+          banco:'',entrada:'',retornoBanco:'',comissao:800,obs:'Garantia de 3 meses de motor e câmbio.'}},
+
+  {id:nid(),categoria:'carro',marca:'Ford',modelo:'KA',versao:'1.0 SE Plus TiVCT Flex 5p',anoFab:2019,anoMod:2019,
+   placa:'PKA9C87',cor:'Preto',km:103000,combustivel:'Flex',cambio:'Manual',origem:'proprio',status:'vendido',
+   valorCompra:34500,dataCompra:d(52),precoAnuncio:43900,fornecedor:'Troca na loja',
+   fotos:F('Ford KA 2019','#3a3f46','#0e1012'),capa:0,
+   docs:{crvOk:true,transferido:true,garantiaAte:d(-8)},
+   custos:[C('Mecânica','Embreagem e correia dentada',2100,45,'Oficina do Léo','concluido',true),
+           C('Documentação','Transferência + despachante',720,40,'Despachante Rogaciano','concluido',true)],
+   venda:{valor:43900,data:d(10),comprador:'Cliente de balcão',vendedor:'André',forma:'Entrada + financiamento',
+          banco:'Santander',entrada:10000,retornoBanco:1800,comissao:900,obs:'Garantia de 3 meses de motor e câmbio.'}},
+
+  {id:nid(),categoria:'carro',marca:'Volkswagen',modelo:'Fox',versao:'Xtreme 1.6 Flex 8V 5p',anoFab:2020,anoMod:2020,
+   placa:'FOX3R58',cor:'Branca',km:36000,combustivel:'Flex',cambio:'Manual',origem:'proprio',status:'vendido',
+   valorCompra:58000,dataCompra:d(96),precoAnuncio:67900,fornecedor:'Particular — Eusébio/CE',
+   fotos:F('VW Fox Xtreme','#444a52','#0f1113'),capa:0,
+   docs:{crvOk:true,transferido:true,garantiaAte:d(-48)},
+   custos:[C('Funilaria e pintura','Porta dianteira direita',1900,88,'Funilaria Bezerra','concluido',true),
+           C('Pneus','2 pneus dianteiros',900,84,'Pneus Aldeota','concluido',true),
+           C('Comissão de captação','Indicação do veículo',500,90,'','concluido',true)],
+   venda:{valor:65900,data:d(42),comprador:'Joana P. (85) 9xxxx-7788',vendedor:'Loja',forma:'Financiamento',
+          banco:'BV Financeira',entrada:6000,retornoBanco:2200,comissao:700,obs:'Desconto de R$ 2.000 no fechamento.'}}
+  );
+}
+/* ---------- INÍCIO ---------- */
+(async()=>{await load();render()})();
+window.addEventListener('keydown',e=>{if(e.key==='Escape')fecha()});
+
+/* ---------- APP INSTALÁVEL (PWA) ---------- */
+(function(){
+  if(!('serviceWorker' in navigator))return;
+  if(location.protocol==='file:')return;          /* só funciona servido por http(s) */
+  let recarregou=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(recarregou)return;recarregou=true;location.reload();
+  });
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      const avisa=w=>w.addEventListener('statechange',()=>{
+        if(w.state==='installed'&&navigator.serviceWorker.controller)mostraNova(reg);
+      });
+      if(reg.waiting&&navigator.serviceWorker.controller)mostraNova(reg);
+      reg.addEventListener('updatefound',()=>{if(reg.installing)avisa(reg.installing)});
+      setInterval(()=>reg.update().catch(()=>{}),60*60*1000);
+    }).catch(()=>{});
+  });
+  function mostraNova(reg){
+    const b=document.getElementById('novaVersao');if(!b)return;
+    b.hidden=false;
+    document.getElementById('btAtualiza').onclick=()=>{
+      b.hidden=true;
+      if(reg.waiting)reg.waiting.postMessage({type:'SKIP_WAITING'});
+      else location.reload();
+    };
+  }
+})();
+
+</script>
+</body>
+</html>
